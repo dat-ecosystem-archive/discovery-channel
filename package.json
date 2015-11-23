@@ -1,0 +1,15 @@
+{
+  "name": "discovery-channel",
+  "version": "1.0.0",
+  "description": "discover peers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "max ogden",
+  "license": "ISC",
+  "dependencies": {
+    "bittorrent-dht": "^4.0.3",
+    "thunky": "^0.1.0"
+  }
+}
