@@ -1,15 +1,18 @@
 {
   "name": "discovery-channel",
   "version": "1.0.0",
-  "description": "discover peers",
+  "description": "discover peers that have hashes using various kewl methods",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard"
   },
   "author": "max ogden",
   "license": "ISC",
   "dependencies": {
     "bittorrent-dht": "^4.0.3",
     "thunky": "^0.1.0"
+  },
+  "devDependencies": {
+    "standard": "^5.4.1"
   }
 }

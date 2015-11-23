@@ -1,10 +1,14 @@
 var DC = require('./index.js')
 var channel = DC()
 
-var hash = 'AB552E29685745923F416D39EF4E3DAD18E8CFE6'
+var hash = new Buffer('deadbeefbeefbeefbeefdeadbeefbeefbeefbeef', 'hex')
 
-channel.on('peer', function (p) {
+var peers = channel.lookup(hash)
+
+peers.on('peer', function (p) {
   console.log('peer', p)
-})
 
-channel.lookup(hash)
+  setTimeout(function () {
+    channel.close()
+  }, 5000)
+})

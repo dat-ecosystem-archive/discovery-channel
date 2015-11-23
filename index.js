@@ -1,35 +1,45 @@
 var events = require('events')
-var DHT = require('bittorrent-dht')
-var cached = require('thunky')
+var DHT = require('./dht.js')
+var parallel = require('run-parallel')
 
 module.exports = function () {
-  var dht = new DHT()
-  
-  var dc = new events.EventEmitter()
-  
-  dc.lookup = function (hash) {
-    openDht(function (err) {
-      if (err) throw err
-      console.error('lookup')
-      dht.lookup(hash)
+  var dht = DHT()
+  var pool = [{module: dht, type: 'dht'}]
+
+  function announce (hash, port, cb) {
+    var tasks = pool.map(function (p) {
+      return function (cb) {
+        p.module.announce(hash, port, cb)
+      }
     })
+    parallel(tasks, cb)
   }
-  
-  dht.on('peer', function (addr, infoHash, from) {
-    dc.emit('peer', addr, infoHash, from)
-  })
-  
-  var openDht = cached(function (cb) {
-    console.error('listen')
-    dht.listen(function (err) {
-      if (err) return cb(err)
-      dht.on('ready', cb)
+
+  function lookup (hash) {
+    var allPeers = new events.EventEmitter()
+    pool.forEach(function (p) {
+      var peers = p.module.lookup(hash)
+      peers.on('peer', function (addr, from) {
+        allPeers.emit('peer', addr, from, p.type)
+      })
     })
-  })
-  
-  dht.on('error', function (err) {
-    console.error('error', err)
-  })
-    
+    return allPeers
+  }
+
+  function close (cb) {
+    var tasks = pool.map(function (p) {
+      return function (cb) {
+        p.module.close(cb)
+      }
+    })
+    parallel(tasks, cb)
+  }
+
+  var dc = {
+    announce: announce,
+    lookup: lookup,
+    close: close
+  }
+
   return dc
 }
