@@ -1,7 +1,7 @@
 var events = require('events')
+var parallel = require('run-parallel')
 var DHT = require('./dht.js')
 var MDNS = require('./mdns.js')
-var parallel = require('run-parallel')
 
 module.exports = function () {
   var dht = DHT()
@@ -22,7 +22,7 @@ module.exports = function () {
     pool.forEach(function (p) {
       var peers = p.module.lookup(hash)
       peers.on('peer', function (addr, from) {
-        allPeers.emit('peer', addr, from, p.type)
+        allPeers.emit('peer', addr, p.type, from)
       })
     })
     return allPeers
