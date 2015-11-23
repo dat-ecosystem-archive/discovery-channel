@@ -4,7 +4,7 @@
   "description": "discover peers that have hashes using various kewl methods",
   "main": "index.js",
   "scripts": {
-    "test": "standard"
+    "test": "standard && node test.js"
   },
   "author": "max ogden",
   "license": "ISC",
