@@ -17,5 +17,13 @@
   },
   "devDependencies": {
     "standard": "^5.4.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxogden/discovery-channel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maxogden/discovery-channel/issues"
+  },
+  "homepage": "https://github.com/maxogden/discovery-channel#readme"
 }

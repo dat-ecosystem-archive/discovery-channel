@@ -15,9 +15,13 @@ Currently searches across and advertises on [the Bittorrent DHT](https://en.wiki
 
 Returns a constructor
 
-### `var channel = DC()`
+### `var channel = DC(<opts>)`
 
-Creates a new instance
+Returns a new instance. `opts` is optional and can have the following properties:
+
+- `pool` - default `[]`, an array of any custom channels you want to use (see source code for details)
+- `mdns` - default `undefined`, if `false` will disable `mdns` discovery, any other value type will be passed to the `multicast-mdns` constructor
+- `dht` - default `undefined`, if `false` will disable `dht` discovery, any other value type will be passed to the `bittorrent-dht` constructor
 
 ### `var lookup = channel.lookup(hash)`
 
@@ -36,6 +40,6 @@ Emitted when a peer answers your query.
 
 Advertise to peers across all networks that you can be queried for information about `hash` at `port`. If passed in, `cb` will be called when the announce has been completed and called with `(err)` if there was an error announcing.
 
-### `channel.destroy(<cb>)`
+### `channel.close(<cb>)`
   
 Stops all lookups and advertisements and call `cb` when done, with `(err)` if there was an error.

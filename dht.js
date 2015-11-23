@@ -2,6 +2,8 @@ var events = require('events')
 var DHT = require('bittorrent-dht')
 var cached = require('thunky')
 
+// SLOW to start up because bittorrent-dht is slow to cold startup
+
 module.exports = function () {
   var dht = new DHT()
 

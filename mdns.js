@@ -2,6 +2,10 @@ var events = require('events')
 var multicastdns = require('multicast-dns')
 var addr = require('network-address')
 
+// use SRV over MDNS to resolve hashes to keys
+// sends announce in response to all queries if key has previously been manually announced
+// will keep process open until `dc.close` is called
+
 module.exports = function (opts) {
   if (!opts) opts = {}
 
