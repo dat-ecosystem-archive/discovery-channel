@@ -1,10 +1,12 @@
 var events = require('events')
 var DHT = require('./dht.js')
+var MDNS = require('./mdns.js')
 var parallel = require('run-parallel')
 
 module.exports = function () {
   var dht = DHT()
-  var pool = [{module: dht, type: 'dht'}]
+  var mdns = MDNS()
+  var pool = [{module: mdns, type: 'mdns'}, {module: dht, type: 'dht'}]
 
   function announce (hash, port, cb) {
     var tasks = pool.map(function (p) {

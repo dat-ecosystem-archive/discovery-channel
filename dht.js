@@ -10,6 +10,7 @@ module.exports = function () {
   var lookups = {}
 
   dc.lookup = function (hash) {
+    if (!Buffer.isBuffer(hash)) hash = new Buffer(hash, 'hex')
     var hashString = hash.toString('hex')
     var peers = lookups[hashString]
     if (!peers) {
@@ -38,7 +39,10 @@ module.exports = function () {
   }
 
   dht.on('peer', function (addr, infoHash, from) {
-    lookups[infoHash].emit('peer', addr, from)
+    var lookup = lookups[infoHash]
+    if (!lookup) return
+    var parts = addr.split(':')
+    lookup.emit('peer', parts[0], parts[1], from)
   })
 
   var openDht = cached(function (cb) {
