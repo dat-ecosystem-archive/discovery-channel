@@ -1,6 +1,6 @@
 {
   "name": "discovery-channel",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "discover peers that have hashes using various kewl methods",
   "main": "index.js",
   "scripts": {
