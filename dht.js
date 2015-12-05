@@ -46,7 +46,7 @@ module.exports = function () {
     var parts = addr.split(':')
     lookup.emit('peer', parts[0], parts[1], from)
   })
-  
+
   var openDht = cached(function (cb) {
     if (dht.listening) return cb()
     dht.on('ready', cb)
