@@ -46,12 +46,10 @@ module.exports = function () {
     var parts = addr.split(':')
     lookup.emit('peer', parts[0], parts[1], from)
   })
-
+  
   var openDht = cached(function (cb) {
-    dht.listen(function (err) {
-      if (err) return cb(err)
-      dht.on('ready', cb)
-    })
+    if (dht.listening) return cb()
+    dht.on('ready', cb)
   })
 
   dht.on('error', function (err) {
