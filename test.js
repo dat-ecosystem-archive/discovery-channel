@@ -1,32 +1,35 @@
-var crypto = require('crypto')
 var test = require('tape')
 var DC = require('./index.js')
 
-var channel = DC()
-var hash = crypto.createHash('sha1').update(new Date().toISOString()).digest()
+var id = new Date().toISOString()
 
-test('announce all', function (t) {
-  channel.announce(hash, 1337, function (err) {
-    if (err) {
-      t.ifErr(err)
-      throw err
+test('find each other', function (t) {
+  var pending = 2
+  t.plan(2)
+
+  var channel1 = DC()
+  var channel2 = DC()
+
+  channel1.add(id, 1337)
+  channel2.add(id, 7331)
+
+  channel1.on('peer', function (hash, peer) {
+    if (peer.port === 7331) {
+      t.pass('found second channel')
+      done()
     }
-    t.ok(true, 'no error')
-    t.end()
   })
-})
 
-test('lookup all', function (t) {
-  var peers = channel.lookup(hash)
-
-  peers.once('peer', function (ip, port) {
-    t.equal(port, 1337, 'port 1337')
-    channel.close(function (err) {
-      if (err) {
-        t.ifErr(err)
-        throw err
-      }
-      t.end()
-    })
+  channel2.on('peer', function (hash, peer) {
+    if (peer.port === 1337) {
+      t.pass('found first channel')
+      done()
+    }
   })
+
+  function done () {
+    if (--pending) return
+    channel1.destroy()
+    channel2.destroy()
+  }
 })
