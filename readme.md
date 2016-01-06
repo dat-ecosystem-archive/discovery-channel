@@ -19,27 +19,33 @@ Returns a constructor
 
 Returns a new instance. `opts` is optional and can have the following properties:
 
-- `pool` - default `[]`, an array of any custom channels you want to use (see source code for details)
-- `mdns` - default `undefined`, if `false` will disable `mdns` discovery, any other value type will be passed to the `multicast-mdns` constructor
+- `dns` - default `undefined`, if `false` will disable `dns` discovery, any other value type will be passed to the `dns-discovery` constructor
 - `dht` - default `undefined`, if `false` will disable `dht` discovery, any other value type will be passed to the `bittorrent-dht` constructor
 
-### `var lookup = channel.lookup(hash)`
+Per default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
 
-Perform a lookup across all networks for `hash`. `lookup` is returned and is an event emitter
+### `channel.add(hash, [port])`
 
-### `lookup.on('peer', ip, port, type, <from>)`
+Perform a lookup across all networks for `hash`.
+Specify `port` if you want to announce that you share `hash` as well.
 
-Emitted when a peer answers your query. 
+### `channel.remove(hash, [port])`
 
-- `ip` is the IP address the peer sent you in response to `hash`
-- `port` is the port the peer sent you in response to `hash`
-- `type` is the network type (one of `['dht', `mdns`]`)
-- `from` is the IP address of the peer that sent you the response (will be `null` if the peers IP was not included in the response)
+Stop looking for `hash`.
+Specify `port` to stop announcing that you share `hash` as well.
 
-### `channel.announce(hash, port, <cb>)`
+### `channel.on('peer', hash, peer, type)`
 
-Advertise to peers across all networks that you can be queried for information about `hash` at `port`. If passed in, `cb` will be called when the announce has been completed and called with `(err)` if there was an error announcing.
+Emitted when a peer answers your query.
 
-### `channel.close(<cb>)`
-  
-Stops all lookups and advertisements and call `cb` when done, with `(err)` if there was an error.
+- `hash` is the hash this peer was discovered for
+- `peer` is the peer that was discovered `{port: port, host: host}`
+- `type` is the network type (one of `['dht', 'dns']`)
+
+### `channel.destroy(cb)`
+
+Stops all lookups and advertisements and call `cb` when done.
+
+### `channel.on('close')`
+
+Emitted when the channel is destroyed
