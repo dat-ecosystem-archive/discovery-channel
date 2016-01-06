@@ -39,6 +39,12 @@ function Discovery (opts) {
 
 util.inherits(Discovery, events.EventEmitter)
 
+Discovery.prototype.has = function (id, port) {
+  if (!port) port = 0
+  if (typeof id === 'string') id = new Buffer(id)
+  return !!this._announcing[id.toString('hex') + ':' + port]
+}
+
 Discovery.prototype.add = function (id, port) {
   if (this.destroyed) return
   if (!port) port = 0
@@ -46,12 +52,15 @@ Discovery.prototype.add = function (id, port) {
 
   var self = this
   var name = id.toString('hex')
+  var key = name + ':' + port
   var sha1 = crypto.createHash('sha1').update(id).digest()
   var dnsTimeout = null
   var dhtTimeout = null
 
+  if (this._announcing[key]) return
+
   this._unsha[sha1.toString('hex')] = id
-  this._announcing[id.toString('hex') + ':' + port] = clear
+  this._announcing[key] = clear
 
   if (this.dns) dns()
   if (this.dht) dht()

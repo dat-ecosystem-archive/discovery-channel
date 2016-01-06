@@ -34,6 +34,10 @@ Specify `port` if you want to announce that you share `hash` as well.
 Stop looking for `hash`.
 Specify `port` to stop announcing that you share `hash` as well.
 
+### `var bool = channel.has(hash, [port])`
+
+Returns `true` if you've added `hash` and `port` earlier otherwise `false`.
+
 ### `channel.on('peer', hash, peer, type)`
 
 Emitted when a peer answers your query.
