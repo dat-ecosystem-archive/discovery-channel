@@ -22,6 +22,7 @@ function Discovery (opts) {
   this._dnsInterval = opts.dns && opts.dns.interval
   this._announcing = {}
   this._unsha = {}
+  this._domains = {}
 
   events.EventEmitter.call(this)
 
@@ -33,7 +34,7 @@ function Discovery (opts) {
 
   function ondnspeer (name, peer) {
     if (self.destroyed) return
-    self.emit('peer', new Buffer(name, 'hex'), peer, 'dns')
+    if (self._domains[name]) self.emit('peer', new Buffer(name, 'hex'), peer, 'dns')
   }
 }
 
@@ -60,6 +61,7 @@ Discovery.prototype.add = function (id, port) {
   if (this._announcing[key]) return
 
   this._unsha[sha1.toString('hex')] = id
+  this._domains[name] = true
   this._announcing[key] = clear
 
   if (this.dns) dns()
@@ -69,6 +71,7 @@ Discovery.prototype.add = function (id, port) {
     clearTimeout(dnsTimeout)
     clearTimeout(dhtTimeout)
     delete self._unsha[sha1.toString('hex')]
+    delete self._domains[name]
     if (self.dns) self.dns.unannounce(name, port)
   }
 
