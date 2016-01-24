@@ -2,7 +2,9 @@
 
 Search for a key across multiple discovery networks and find peers who answer.
 
-Currently searches across and advertises on [the Bittorrent DHT](https://en.wikipedia.org/wiki/Mainline_DHT) and [Multicast DNS](https://en.wikipedia.org/wiki/Multicast_DNS) simultaneously.
+Currently searches across and advertises on [the Bittorrent DHT](https://en.wikipedia.org/wiki/Mainline_DHT), centralized DNS servers and [Multicast DNS](https://en.wikipedia.org/wiki/Multicast_DNS) simultaneously.
+
+Uses the [bittorrent-dht](https://github.com/feross/bittorrent-dht) and [dns-discovery](https://github.com/mafintosh/dns-discovery) modules.
 
 [![travis][travis-image]][travis-url]
 
@@ -22,7 +24,7 @@ Returns a new instance. `opts` is optional and can have the following properties
 - `dns` - default `undefined`, if `false` will disable `dns` discovery, any other value type will be passed to the `dns-discovery` constructor
 - `dht` - default `undefined`, if `false` will disable `dht` discovery, any other value type will be passed to the `bittorrent-dht` constructor
 
-Per default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
+By default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
 
 ### `channel.add(hash, [port])`
 

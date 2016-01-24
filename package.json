@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bittorrent-dht": "^6.0.1",
-    "dns-discovery": "^2.0.1"
+    "dns-discovery": "^3.0.0"
   },
   "devDependencies": {
     "standard": "^5.4.1",

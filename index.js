@@ -78,7 +78,7 @@ Discovery.prototype.add = function (id, port) {
   function dns () {
     if (port) self.dns.announce(name, port)
     self.dns.lookup(name)
-     // TODO: this might be to aggressive for trackers?
+     // TODO: this might be to aggressive?
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
