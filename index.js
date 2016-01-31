@@ -22,7 +22,6 @@ function Discovery (opts) {
   this._dnsInterval = opts.dns && opts.dns.interval
   this._announcing = {}
   this._unsha = {}
-  this._domains = {}
 
   events.EventEmitter.call(this)
 
@@ -34,7 +33,8 @@ function Discovery (opts) {
 
   function ondnspeer (name, peer) {
     if (self.destroyed) return
-    if (self._domains[name]) self.emit('peer', new Buffer(name, 'hex'), peer, 'dns')
+    var id = self._unsha[name]
+    if (id) self.emit('peer', id, peer, 'dns')
   }
 }
 
@@ -55,13 +55,13 @@ Discovery.prototype.add = function (id, port) {
   var name = id.toString('hex')
   var key = name + ':' + port
   var sha1 = crypto.createHash('sha1').update(id).digest()
+  var sha1hex = sha1.toString('hex')
   var dnsTimeout = null
   var dhtTimeout = null
 
   if (this._announcing[key]) return
 
-  this._unsha[sha1.toString('hex')] = id
-  this._domains[name] = true
+  this._unsha[sha1hex] = id
   this._announcing[key] = clear
 
   if (this.dns) dns()
@@ -70,14 +70,13 @@ Discovery.prototype.add = function (id, port) {
   function clear () {
     clearTimeout(dnsTimeout)
     clearTimeout(dhtTimeout)
-    delete self._unsha[sha1.toString('hex')]
-    delete self._domains[name]
-    if (self.dns) self.dns.unannounce(name, port)
+    delete self._unsha[sha1hex]
+    if (self.dns) self.dns.unannounce(sha1hex, port)
   }
 
   function dns () {
-    if (port) self.dns.announce(name, port)
-    self.dns.lookup(name)
+    if (port) self.dns.announce(sha1hex, port)
+    self.dns.lookup(sha1hex)
      // TODO: this might be to aggressive?
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
