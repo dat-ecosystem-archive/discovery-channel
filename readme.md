@@ -6,6 +6,8 @@ Currently searches across and advertises on [the Bittorrent DHT](https://en.wiki
 
 Uses the [bittorrent-dht](https://github.com/feross/bittorrent-dht) and [dns-discovery](https://github.com/mafintosh/dns-discovery) modules.
 
+Also check out [discovery-swarm](https://github.com/mafintosh/discovery-swarm) which adds connection management on top of this module.
+
 [![travis][travis-image]][travis-url]
 
 [travis-image]: https://img.shields.io/travis/maxogden/discovery-channel.svg?style=flat
