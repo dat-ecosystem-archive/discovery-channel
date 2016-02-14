@@ -48,8 +48,10 @@ Discovery.prototype.has = function (id, port) {
 
 Discovery.prototype.add = function (id, port) {
   if (this.destroyed) return
-  if (!port) port = 0
   if (typeof id === 'string') id = new Buffer(id)
+
+  var announcing = typeof port === 'number'
+  if (!port) port = 0
 
   var self = this
   var name = id.toString('hex')
@@ -75,14 +77,14 @@ Discovery.prototype.add = function (id, port) {
   }
 
   function dns () {
-    if (port) self.dns.announce(sha1hex, port)
+    if (announcing) self.dns.announce(sha1hex, port)
     self.dns.lookup(sha1hex)
      // TODO: this might be to aggressive?
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
   function dht () {
-    if (port) self.dht.announce(sha1, port)
+    if (announcing) self.dht.announce(sha1, port)
     else self.dht.lookup(sha1)
     dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
   }
