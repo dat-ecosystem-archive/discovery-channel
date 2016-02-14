@@ -9,12 +9,12 @@
   "author": "max ogden",
   "license": "ISC",
   "dependencies": {
-    "bittorrent-dht": "^6.0.1",
-    "dns-discovery": "^3.0.0"
+    "bittorrent-dht": "^6.4.0",
+    "dns-discovery": "^3.5.1"
   },
   "devDependencies": {
-    "standard": "^5.4.1",
-    "tape": "^4.2.2"
+    "standard": "^6.0.5",
+    "tape": "^4.4.0"
   },
   "repository": {
     "type": "git",
