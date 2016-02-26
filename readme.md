@@ -28,25 +28,36 @@ Returns a new instance. `opts` is optional and can have the following properties
 
 By default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
 
-### `channel.add(hash, [port])`
+### `channel.join(id, [port])`
 
-Perform a lookup across all networks for `hash`.
-Specify `port` if you want to announce that you share `hash` as well.
+Perform a lookup across all networks for `id`. `id` can be a buffer or a string.
+Specify `port` if you want to announce that you share `id` as well.
 
-### `channel.remove(hash, [port])`
+### `channel.leave(id, [port])`
 
-Stop looking for `hash`.
-Specify `port` to stop announcing that you share `hash` as well.
+Stop looking for `id`. `id` can be a buffer or a string.
+Specify `port` to stop announcing that you share `id` as well.
 
-### `var bool = channel.has(hash, [port])`
+### `channel.update()`
 
-Returns `true` if you've added `hash` and `port` earlier otherwise `false`.
+Force announce / lookup all joined hashes
 
-### `channel.on('peer', hash, peer, type)`
+### `var list = channel.list()`
+
+List all the channels you have joined. The returned array items look like this
+
+``` js
+{
+  id: <Buffer>,
+  port: <port you are announcing>
+}
+```
+
+### `channel.on('peer', id, peer, type)`
 
 Emitted when a peer answers your query.
 
-- `hash` is the hash this peer was discovered for
+- `id` is the id (as a buffer) this peer was discovered for
 - `peer` is the peer that was discovered `{port: port, host: host}`
 - `type` is the network type (one of `['dht', 'dns']`)
 

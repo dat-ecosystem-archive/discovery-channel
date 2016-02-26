@@ -1,5 +1,5 @@
 var dns = require('dns-discovery')
-var DHT = require('bittorrent-dht')
+var dht = require('bittorrent-dht')
 var crypto = require('crypto')
 var events = require('events')
 var util = require('util')
@@ -12,7 +12,7 @@ function Discovery (opts) {
 
   var self = this
 
-  this.dht = opts.dht === false ? null : new DHT(opts.dht)
+  this.dht = opts.dht === false ? null : dht(opts.dht)
   this.dns = opts.dns === false ? null : dns(opts.dns)
   if (this.dns) this.dns.on('peer', ondnspeer)
   if (this.dht) this.dht.on('peer', ondhtpeer)
@@ -40,13 +40,7 @@ function Discovery (opts) {
 
 util.inherits(Discovery, events.EventEmitter)
 
-Discovery.prototype.has = function (id, port) {
-  if (!port) port = 0
-  if (typeof id === 'string') id = new Buffer(id)
-  return !!this._announcing[id.toString('hex') + ':' + port]
-}
-
-Discovery.prototype.add = function (id, port) {
+Discovery.prototype.join = function (id, port) {
   if (this.destroyed) return
   if (typeof id === 'string') id = new Buffer(id)
 
@@ -64,7 +58,11 @@ Discovery.prototype.add = function (id, port) {
   if (this._announcing[key]) return
 
   this._unsha[sha1hex] = id
-  this._announcing[key] = clear
+  this._announcing[key] = {
+    id: id,
+    port: port,
+    destroy: clear
+  }
 
   if (this.dns) dns()
   if (this.dht) dht()
@@ -78,7 +76,7 @@ Discovery.prototype.add = function (id, port) {
 
   function dns () {
     if (announcing) self.dns.announce(sha1hex, port)
-    self.dns.lookup(sha1hex)
+    else self.dns.lookup(sha1hex)
      // TODO: this might be to aggressive?
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
@@ -90,14 +88,33 @@ Discovery.prototype.add = function (id, port) {
   }
 }
 
-Discovery.prototype.remove = function (id, port) {
+Discovery.prototype.leave = function (id, port) {
   if (this.destroyed) return
   if (!port) port = 0
   if (typeof id === 'string') id = new Buffer(id)
   var key = id.toString('hex') + ':' + port
   if (!this._announcing[key]) return
-  this._announcing[key]()
+  this._announcing[key].destroy()
   delete this._announcing[key]
+}
+
+Discovery.prototype.update = function () {
+  var all = this.list()
+  for (var i = 0; i < all.length; i++) {
+    all[i].destroy()
+    this.remove(all[i].id, all[i].port)
+    this.add(all[i].id, all[i].port)
+  }
+}
+
+Discovery.prototype.list = function () {
+  var keys = Object.keys(this._announcing)
+  var all = new Array(keys.length)
+  for (var i = 0; i < keys.length; i++) {
+    var ann = this._announcing[keys[i]]
+    all[i] = {id: ann.id, port: ann.port}
+  }
+  return all
 }
 
 Discovery.prototype.destroy = function (cb) {
@@ -107,7 +124,7 @@ Discovery.prototype.destroy = function (cb) {
   }
   this.destroyed = true
   var keys = Object.keys(this._announcing)
-  for (var i = 0; i < keys.length; i++) this._announcing[keys[i]]()
+  for (var i = 0; i < keys.length; i++) this._announcing[keys[i]].destroy()
   this._announcing = {}
   if (cb) this.once('close', cb)
   var self = this
