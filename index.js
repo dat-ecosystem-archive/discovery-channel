@@ -91,7 +91,7 @@ Discovery.prototype.join = function (id, port, opts) {
 
   this._whoami(function () {
     if (destroyed) return
-    if (self._me && self._me.port) publicPort = self._me.port
+    if (self.me && self.me.port) publicPort = self.me.port
     skipMulticast = true
     ready()
   })
