@@ -1,5 +1,6 @@
 var dns = require('dns-discovery')
 var dht = require('bittorrent-dht')
+var thunky = require('thunky')
 var crypto = require('crypto')
 var events = require('events')
 var util = require('util')
@@ -17,13 +18,26 @@ function Discovery (opts) {
   if (this.dns) this.dns.on('peer', ondnspeer)
   if (this.dht) this.dht.on('peer', ondhtpeer)
   this.destroyed = false
+  this.me = {host: null, port: 0}
 
   this._dhtInterval = opts.dht && opts.dht.interval
   this._dnsInterval = opts.dns && opts.dns.interval
   this._announcing = {}
   this._unsha = {}
+  this._whoami = this.dns && this.dns.whoami && thunky(whoami)
+  if (this._whoami) this._whoami()
 
   events.EventEmitter.call(this)
+
+  function whoami (cb) {
+    self.dns.whoami(function (_, me) {
+      if (me) {
+        self.me = me
+        self.emit('whoami', me)
+      }
+      cb()
+    })
+  }
 
   function ondhtpeer (peer, infoHash) {
     if (self.destroyed) return
@@ -40,9 +54,10 @@ function Discovery (opts) {
 
 util.inherits(Discovery, events.EventEmitter)
 
-Discovery.prototype.join = function (id, port) {
+Discovery.prototype.join = function (id, port, opts) {
   if (this.destroyed) return
   if (typeof id === 'string') id = new Buffer(id)
+  if (!opts) opts = {}
 
   var announcing = typeof port === 'number'
   if (!port) port = 0
@@ -54,6 +69,9 @@ Discovery.prototype.join = function (id, port) {
   var sha1hex = sha1.toString('hex')
   var dnsTimeout = null
   var dhtTimeout = null
+  var destroyed = false
+  var publicPort = 0
+  var skipMulticast = false
 
   if (this._announcing[key]) return
 
@@ -61,13 +79,30 @@ Discovery.prototype.join = function (id, port) {
   this._announcing[key] = {
     id: id,
     port: port,
-    destroy: clear
+    destroy: destroy
   }
 
-  if (this.dns) dns()
-  if (this.dht) dht()
+  if (!opts.impliedPort || !this._whoami) return ready()
 
-  function clear () {
+  if (this.dns) {
+    if (announcing) this.dns.announce(sha1hex, port, {server: false})
+    else this.dns.lookup(sha1hex, {server: false})
+  }
+
+  this._whoami(function () {
+    if (destroyed) return
+    if (self._me && self._me.port) publicPort = self._me.port
+    skipMulticast = true
+    ready()
+  })
+
+  function ready () {
+    if (self.dns) dns()
+    if (self.dht) dht()
+  }
+
+  function destroy () {
+    destroyed = true
     clearTimeout(dnsTimeout)
     clearTimeout(dhtTimeout)
     delete self._unsha[sha1hex]
@@ -75,14 +110,15 @@ Discovery.prototype.join = function (id, port) {
   }
 
   function dns () {
-    if (announcing) self.dns.announce(sha1hex, port)
-    else self.dns.lookup(sha1hex)
+    if (announcing) self.dns.announce(sha1hex, port, {publicPort: publicPort, multicast: !skipMulticast})
+    else self.dns.lookup(sha1hex, {multicast: !skipMulticast})
      // TODO: this might be to aggressive?
+    skipMulticast = false
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
   function dht () {
-    if (announcing) self.dht.announce(sha1, port)
+    if (announcing) self.dht.announce(sha1, publicPort || port)
     else self.dht.lookup(sha1)
     dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
   }
