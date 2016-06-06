@@ -20,7 +20,7 @@ function Discovery (opts) {
   this.destroyed = false
   this.me = {host: null, port: 0}
 
-  this._hash = opts.hash || sha1 // bt dht uses sha1 so we'll default to that
+  this._hash = opts.hash || (opts.hash === false ? noHash : sha1) // bt dht uses sha1 so we'll default to that
   this._dhtInterval = opts.dht && opts.dht.interval
   this._dnsInterval = opts.dns && opts.dns.interval
   this._announcing = {}
@@ -182,4 +182,9 @@ Discovery.prototype.destroy = function (cb) {
 
 function sha1 (id) {
   return crypto.createHash('sha1').update(id).digest()
+}
+
+function noHash (id) {
+  if (typeof id === 'string') return Buffer(id)
+  return id
 }
