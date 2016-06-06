@@ -20,10 +20,11 @@ function Discovery (opts) {
   this.destroyed = false
   this.me = {host: null, port: 0}
 
+  this._hash = opts.hash || sha1 // bt dht uses sha1 so we'll default to that
   this._dhtInterval = opts.dht && opts.dht.interval
   this._dnsInterval = opts.dns && opts.dns.interval
   this._announcing = {}
-  this._unsha = {}
+  this._unhash = {}
   this._whoami = this.dns && this.dns.whoami && thunky(whoami)
   if (this._whoami) this._whoami()
 
@@ -41,13 +42,13 @@ function Discovery (opts) {
 
   function ondhtpeer (peer, infoHash) {
     if (self.destroyed) return
-    var id = self._unsha[infoHash.toString('hex')]
+    var id = self._unhash[infoHash.toString('hex')]
     if (id) self.emit('peer', id, peer, 'dht')
   }
 
   function ondnspeer (name, peer) {
     if (self.destroyed) return
-    var id = self._unsha[name]
+    var id = self._unhash[name]
     if (id) self.emit('peer', id, peer, 'dns')
   }
 }
@@ -65,8 +66,9 @@ Discovery.prototype.join = function (id, port, opts) {
   var self = this
   var name = id.toString('hex')
   var key = name + ':' + port
-  var sha1 = crypto.createHash('sha1').update(id).digest()
-  var sha1hex = sha1.toString('hex')
+  var hash = this._hash(id)
+  if (hash.length > 20) hash = hash.slice(0, 20) // truncate hash so it fits in the dht
+  var hashHex = hash.toString('hex')
   var dnsTimeout = null
   var dhtTimeout = null
   var destroyed = false
@@ -75,7 +77,7 @@ Discovery.prototype.join = function (id, port, opts) {
 
   if (this._announcing[key]) return
 
-  this._unsha[sha1hex] = id
+  this._unhash[hashHex] = id
   this._announcing[key] = {
     id: id,
     port: port,
@@ -85,8 +87,8 @@ Discovery.prototype.join = function (id, port, opts) {
   if (!opts.impliedPort || !this._whoami) return ready()
 
   if (this.dns) {
-    if (announcing) this.dns.announce(sha1hex, port, {server: false})
-    else this.dns.lookup(sha1hex, {server: false})
+    if (announcing) this.dns.announce(hashHex, port, {server: false})
+    else this.dns.lookup(hashHex, {server: false})
   }
 
   this._whoami(function () {
@@ -105,21 +107,21 @@ Discovery.prototype.join = function (id, port, opts) {
     destroyed = true
     clearTimeout(dnsTimeout)
     clearTimeout(dhtTimeout)
-    delete self._unsha[sha1hex]
-    if (self.dns) self.dns.unannounce(sha1hex, port)
+    delete self._unhash[hashHex]
+    if (self.dns) self.dns.unannounce(hashHex, port)
   }
 
   function dns () {
-    if (announcing) self.dns.announce(sha1hex, port, {publicPort: publicPort, multicast: !skipMulticast})
-    else self.dns.lookup(sha1hex, {multicast: !skipMulticast})
+    if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast})
+    else self.dns.lookup(hashHex, {multicast: !skipMulticast})
      // TODO: this might be to aggressive?
     skipMulticast = false
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
   function dht () {
-    if (announcing) self.dht.announce(sha1, publicPort || port)
-    else self.dht.lookup(sha1)
+    if (announcing) self.dht.announce(hash, publicPort || port)
+    else self.dht.lookup(hash)
     dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
   }
 }
@@ -176,4 +178,8 @@ Discovery.prototype.destroy = function (cb) {
   function ondnsdestroy () {
     self.emit('close')
   }
+}
+
+function sha1 (id) {
+  return crypto.createHash('sha1').update(id).digest()
 }

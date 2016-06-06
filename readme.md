@@ -25,6 +25,7 @@ Returns a new instance. `opts` is optional and can have the following properties
 
 - `dns` - default `undefined`, if `false` will disable `dns` discovery, any other value type will be passed to the `dns-discovery` constructor
 - `dht` - default `undefined`, if `false` will disable `dht` discovery, any other value type will be passed to the `bittorrent-dht` constructor
+- `hash` - default `sha1`. provide a custom hash function to hash ids before they are stored in the dht / on dns servers.
 
 By default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
 
