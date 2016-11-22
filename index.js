@@ -4,6 +4,8 @@ var thunky = require('thunky')
 var crypto = require('crypto')
 var events = require('events')
 var util = require('util')
+var debug = require('debug')('discovery-channel')
+var prettyHash = require('pretty-hash')
 
 module.exports = Discovery
 
@@ -33,22 +35,27 @@ function Discovery (opts) {
   function whoami (cb) {
     self.dns.whoami(function (_, me) {
       if (me) {
+        debug('whoami() succeeded, I am:', me)
         self.me = me
         self.emit('whoami', me)
+      } else {
+        debug('whoami() failed')
       }
       cb()
     })
   }
 
-  function ondhtpeer (peer, infoHash) {
+  function ondhtpeer (peer, infoHash, via) {
     if (self.destroyed) return
     var id = self._unhash[infoHash.toString('hex')]
+    debug('chan=%s dht discovery peer=%s:%s via=%s:%s', prettyHash(id), peer.host, peer.port)
     if (id) self.emit('peer', id, peer, 'dht')
   }
 
   function ondnspeer (name, peer) {
     if (self.destroyed) return
     var id = self._unhash[name]
+    debug('chan=%s dns discovery peer=%s:%s', prettyHash(id), peer.host, peer.port)
     if (id) self.emit('peer', id, peer, 'dns')
   }
 }
@@ -76,6 +83,8 @@ Discovery.prototype.join = function (id, port, opts) {
   var skipMulticast = false
 
   if (this._announcing[key]) return
+
+  debug('chan=%s join()', prettyHash(id))
 
   this._unhash[hashHex] = id
   this._announcing[key] = {
@@ -112,6 +121,7 @@ Discovery.prototype.join = function (id, port, opts) {
   }
 
   function dns () {
+    debug('chan=%s dns %s', prettyHash(id), announcing ? 'announce' : 'lookup')
     if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast})
     else self.dns.lookup(hashHex, {multicast: !skipMulticast})
      // TODO: this might be to aggressive?
@@ -120,6 +130,7 @@ Discovery.prototype.join = function (id, port, opts) {
   }
 
   function dht () {
+    debug('chan=%s dht %s', prettyHash(id), announcing ? 'announce' : 'lookup')
     if (announcing) self.dht.announce(hash, publicPort || port)
     else self.dht.lookup(hash)
     dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
@@ -132,6 +143,7 @@ Discovery.prototype.leave = function (id, port) {
   if (typeof id === 'string') id = new Buffer(id)
   var key = id.toString('hex') + ':' + port
   if (!this._announcing[key]) return
+  debug('chan=%s leave()', prettyHash(id))
   this._announcing[key].destroy()
   delete this._announcing[key]
 }
