@@ -48,7 +48,8 @@ function Discovery (opts) {
   function ondhtpeer (peer, infoHash, via) {
     if (self.destroyed) return
     var id = self._unhash[infoHash.toString('hex')]
-    debug('chan=%s dht discovery peer=%s:%s via=%s:%s', prettyHash(id), peer.host, peer.port)
+    if (via) debug('chan=%s dht discovery peer=%s:%s via=%s:%s', prettyHash(id), peer.host, peer.port, via.host || via.address, via.port)
+    else debug('chan=%s dht discovery peer=%s:%s', prettyHash(id), peer.host, peer.port)
     if (id) self.emit('peer', id, peer, 'dht')
   }
 
