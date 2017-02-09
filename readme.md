@@ -29,10 +29,12 @@ Returns a new instance. `opts` is optional and can have the following properties
 
 By default hashes are re-announced around every 10 min on the dht and 1 min using dns. Set `dht.interval` or `dns.interval` to change these.
 
-### `channel.join(id, [port])`
+### `channel.join(id, [port], [cb])`
 
 Perform a lookup across all networks for `id`. `id` can be a buffer or a string.
 Specify `port` if you want to announce that you share `id` as well.
+
+If you specify `cb`, it will be called **when the first round** of discovery has completed. But only on the first round.
 
 ### `channel.leave(id, [port])`
 
