@@ -63,10 +63,15 @@ function Discovery (opts) {
 
 util.inherits(Discovery, events.EventEmitter)
 
-Discovery.prototype.join = function (id, port, opts) {
+Discovery.prototype.join = function (id, port, opts, cb) {
   if (this.destroyed) return
   if (typeof id === 'string') id = new Buffer(id)
+  if (typeof opts === 'function') {
+    cb = opts
+    opts = {}
+  }
   if (!opts) opts = {}
+  if (!cb) cb = function () {}
 
   var announcing = typeof port === 'number'
   if (!port) port = 0
@@ -96,6 +101,10 @@ Discovery.prototype.join = function (id, port, opts) {
 
   if (!opts.impliedPort || !this._whoami) return ready()
 
+  // do a multicast only query immediately.
+  // multicast has no way to know if there will definitively be no replies
+  // so you can assume if you get no mdns responses by the time the first
+  // dns/dht responses come back then there are probably no mdns peers online
   if (this.dns) {
     if (announcing) this.dns.announce(hashHex, port, {server: false})
     else this.dns.lookup(hashHex, {server: false})
@@ -104,13 +113,28 @@ Discovery.prototype.join = function (id, port, opts) {
   this._whoami(function () {
     if (destroyed) return
     if (self.me && self.me.port) publicPort = self.me.port
+    // since we already did it, skip multicast on the first call
     skipMulticast = true
     ready()
   })
 
+  var pending = 0
+  var firstQueryDone = false
+  function queryDone (err) {
+    if (firstQueryDone) return
+    if (--pending <= 0) firstQueryDone = true
+    cb(err)
+  }
+
   function ready () {
-    if (self.dns) dns()
-    if (self.dht) dht()
+    if (self.dns) {
+      pending++
+      dns()
+    }
+    if (self.dht) {
+      pending++
+      dht()
+    }
   }
 
   function destroy () {
@@ -123,17 +147,16 @@ Discovery.prototype.join = function (id, port, opts) {
 
   function dns () {
     debug('chan=%s dns %s', prettyHash(id), announcing ? 'announce' : 'lookup')
-    if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast})
-    else self.dns.lookup(hashHex, {multicast: !skipMulticast})
-     // TODO: this might be to aggressive?
+    if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast}, queryDone)
+    else self.dns.lookup(hashHex, {multicast: !skipMulticast}, queryDone)
     skipMulticast = false
     dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
   function dht () {
     debug('chan=%s dht %s', prettyHash(id), announcing ? 'announce' : 'lookup')
-    if (announcing) self.dht.announce(hash, publicPort || port)
-    else self.dht.lookup(hash)
+    if (announcing) self.dht.announce(hash, publicPort || port, queryDone)
+    else self.dht.lookup(hash, queryDone)
     dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
   }
 }

@@ -54,3 +54,14 @@ test('find each other', function (t) {
     channel2.destroy()
   }
 })
+
+test('join cb gets called', function (t) {
+  var id = crypto.randomBytes(32)
+  var channel1 = DC()
+  channel1.join(id, 1337, function (err) {
+    t.ifErr(err)
+    t.ok('called cb')
+    channel1.destroy()
+    t.end()
+  })
+})
