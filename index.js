@@ -151,14 +151,14 @@ Discovery.prototype.join = function (id, port, opts, cb) {
     if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast}, queryDone)
     else self.dns.lookup(hashHex, {multicast: !skipMulticast}, queryDone)
     skipMulticast = false
-    dnsTimeout = setTimeout(dns, this._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
+    dnsTimeout = setTimeout(dns, self._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
 
   function dht () {
     debug('chan=%s dht %s', prettyHash(id), announcing ? 'announce' : 'lookup')
     if (announcing) self.dht.announce(hash, publicPort || port, queryDone)
     else self.dht.lookup(hash, queryDone)
-    dhtTimeout = setTimeout(dht, this._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
+    dhtTimeout = setTimeout(dht, self._dhtInterval || (10 * 60 * 1000 + (Math.random() * 5 * 60 * 1000) | 0))
   }
 }
 
