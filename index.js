@@ -17,8 +17,16 @@ function Discovery (opts) {
 
   this.dht = opts.dht === false ? null : dht(opts.dht)
   this.dns = opts.dns === false ? null : dns(opts.dns)
-  if (this.dns) this.dns.on('peer', ondnspeer)
-  if (this.dht) this.dht.on('peer', ondhtpeer)
+  if (this.dns) {
+    this.dns.on('peer', ondnspeer)
+    this.dns.on('error', onwarn) // warn for dns errors as they are non critical
+    this.dns.on('warn', onwarn)
+  }
+  if (this.dht) {
+    this.dht.on('peer', ondhtpeer)
+    this.dht.on('error', onerror)
+    this.dht.on('warn', onwarn)
+  }
   this.destroyed = false
   this.me = {host: null, port: 0}
 
@@ -58,6 +66,14 @@ function Discovery (opts) {
     var id = self._unhash[name]
     debug('chan=%s dns discovery peer=%s:%s', prettyHash(id), peer.host, peer.port)
     if (id) self.emit('peer', id, peer, 'dns')
+  }
+
+  function onwarn (err) {
+    self.emit('warn', err)
+  }
+
+  function onerror (err) {
+    self.emit('error', err)
   }
 }
 
