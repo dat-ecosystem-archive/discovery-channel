@@ -36,11 +36,16 @@ function Discovery (opts) {
   this._announcing = {}
   this._unhash = {}
   this._whoami = this.dns && this.dns.whoami && thunky(whoami)
-  if (this._whoami) this._whoami()
+  if (this._whoami) {
+    this._whoami()
+  } else {
+    debug('not running a whoami() - dns discovery was not enabled')
+  }
 
   events.EventEmitter.call(this)
 
   function whoami (cb) {
+    debug('whoami() started')
     self.dns.whoami(function (_, me) {
       if (me) {
         debug('whoami() succeeded, I am:', me)
