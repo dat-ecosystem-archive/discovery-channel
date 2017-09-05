@@ -4,7 +4,7 @@ Search for a key across multiple discovery networks and find peers who answer.
 
 Currently searches across and advertises on [the Bittorrent DHT](https://en.wikipedia.org/wiki/Mainline_DHT), centralized DNS servers and [Multicast DNS](https://en.wikipedia.org/wiki/Multicast_DNS) simultaneously.
 
-Uses the [bittorrent-dht](https://github.com/feross/bittorrent-dht) and [dns-discovery](https://github.com/mafintosh/dns-discovery) modules.
+Uses the [bittorrent-dht](https://github.com/webtorrent/bittorrent-dht) and [dns-discovery](https://github.com/mafintosh/dns-discovery) modules.
 
 Also check out [discovery-swarm](https://github.com/mafintosh/discovery-swarm) which adds connection management on top of this module.
 
