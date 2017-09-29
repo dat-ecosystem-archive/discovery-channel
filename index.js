@@ -168,9 +168,13 @@ Discovery.prototype.join = function (id, port, opts, cb) {
   }
 
   function dns () {
-    debug('chan=%s dns %s', prettyHash(id), announcing ? 'announce' : 'lookup')
-    if (announcing) self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast}, queryDone)
-    else self.dns.lookup(hashHex, {multicast: !skipMulticast}, queryDone)
+    if (announcing) {
+      debug('chan=%s dns %s', prettyHash(id), 'announce', {port: port, publicPort: publicPort, multicast: !skipMulticast})
+      self.dns.announce(hashHex, port, {publicPort: publicPort, multicast: !skipMulticast}, queryDone)
+    } else {
+      debug('chan=%s dns %s', prettyHash(id), 'lookup')
+      self.dns.lookup(hashHex, {multicast: !skipMulticast}, queryDone)
+    }
     skipMulticast = false
     dnsTimeout = setTimeout(dns, self._dnsInterval || (60 * 1000 + (Math.random() * 10 * 1000) | 0))
   }
