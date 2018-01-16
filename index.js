@@ -120,6 +120,11 @@ Discovery.prototype.join = function (id, port, opts, cb) {
     destroy: destroy
   }
 
+  var pending = 0
+  var firstQueryDone = false
+  var error = null
+  var succeded = false
+
   if (!opts.impliedPort || !this._whoami) return ready()
 
   // do a multicast only query immediately.
@@ -139,16 +144,14 @@ Discovery.prototype.join = function (id, port, opts, cb) {
     ready()
   })
 
-  var pending = 0
-  var firstQueryDone = false
-  var error = null
   function queryDone (err) {
     if (firstQueryDone) return
     if (err) error = err
+    else succeded = true
     if (--pending > 0) return
     firstQueryDone = true
     self.emit('query-done', true)
-    cb(error)
+    cb(succeded ? null : error)
   }
 
   function ready () {
