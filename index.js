@@ -141,11 +141,14 @@ Discovery.prototype.join = function (id, port, opts, cb) {
 
   var pending = 0
   var firstQueryDone = false
+  var error = null
   function queryDone (err) {
     if (firstQueryDone) return
-    if (--pending <= 0) firstQueryDone = true
+    if (err) error = err
+    if (--pending > 0) return
+    firstQueryDone = true
     self.emit('query-done', true)
-    cb(err)
+    cb(error)
   }
 
   function ready () {
