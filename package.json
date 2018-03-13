@@ -11,7 +11,7 @@
   "dependencies": {
     "bittorrent-dht": "^7.10.0",
     "debug": "^2.6.9",
-    "dns-discovery": "^6.0.0",
+    "dns-discovery": "^6.0.1",
     "pretty-hash": "^1.0.1",
     "thunky": "^0.1.0"
   },
