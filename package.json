@@ -9,15 +9,15 @@
   "author": "max ogden",
   "license": "ISC",
   "dependencies": {
-    "bittorrent-dht": "^7.2.1",
-    "debug": "^2.3.2",
-    "dns-discovery": "^5.3.4",
-    "pretty-hash": "^1.0.0",
+    "bittorrent-dht": "^7.10.0",
+    "debug": "^2.6.9",
+    "dns-discovery": "^6.0.0",
+    "pretty-hash": "^1.0.1",
     "thunky": "^0.1.0"
   },
   "devDependencies": {
     "standard": "^6.0.5",
-    "tape": "^4.4.0"
+    "tape": "^4.9.0"
   },
   "repository": {
     "type": "git",
