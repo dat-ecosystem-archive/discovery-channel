@@ -6,6 +6,7 @@ var events = require('events')
 var util = require('util')
 var debug = require('debug')('discovery-channel')
 var prettyHash = require('pretty-hash')
+var bufferFrom = require('buffer-from')
 
 module.exports = Discovery
 
@@ -86,7 +87,7 @@ util.inherits(Discovery, events.EventEmitter)
 
 Discovery.prototype.join = function (id, port, opts, cb) {
   if (this.destroyed) return
-  if (typeof id === 'string') id = new Buffer(id)
+  if (typeof id === 'string') id = bufferFrom(id)
   if (typeof opts === 'function') {
     cb = opts
     opts = {}
@@ -196,7 +197,7 @@ Discovery.prototype.join = function (id, port, opts, cb) {
 Discovery.prototype.leave = function (id, port) {
   if (this.destroyed) return
   if (!port) port = 0
-  if (typeof id === 'string') id = new Buffer(id)
+  if (typeof id === 'string') id = bufferFrom(id)
   var key = id.toString('hex') + ':' + port
   if (!this._announcing[key]) return
   debug('chan=%s leave()', prettyHash(id))
@@ -253,6 +254,6 @@ function sha1 (id) {
 }
 
 function noHash (id) {
-  if (typeof id === 'string') return Buffer(id)
+  if (typeof id === 'string') return bufferFrom(id)
   return id
 }

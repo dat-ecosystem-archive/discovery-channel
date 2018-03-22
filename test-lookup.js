@@ -1,4 +1,6 @@
 var DC = require('./index.js')
+var bufferFrom = require('buffer-from')
+
 var channel = DC({
   dns: {
     servers: [
@@ -8,7 +10,7 @@ var channel = DC({
   }
 })
 
-var hash = new Buffer('deadbeefbeefbeefbeefdeadbeefbeefbeefbeef', 'hex')
+var hash = bufferFrom('deadbeefbeefbeefbeefdeadbeefbeefbeefbeef', 'hex')
 
 channel.join(hash)
 channel.on('peer', function (hash, peer, type) {
