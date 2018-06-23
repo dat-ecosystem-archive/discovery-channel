@@ -208,7 +208,6 @@ Discovery.prototype.leave = function (id, port) {
 Discovery.prototype.update = function () {
   var all = this.list()
   for (var i = 0; i < all.length; i++) {
-    all[i].destroy()
     this.leave(all[i].id, all[i].port)
     this.join(all[i].id, all[i].port)
   }
