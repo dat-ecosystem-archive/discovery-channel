@@ -16,8 +16,18 @@ function Discovery (opts) {
 
   var self = this
 
-  this.dht = opts.dht === false ? null : dht(opts.dht)
-  this.dns = opts.dns === false ? null : dns(opts.dns)
+  if (opts.dht instanceof dht) {
+    this.dht = opts.dht
+  } else {
+    this.dht = opts.dht === false ? null : dht(opts.dht)
+  }
+
+  if (opts.dns instanceof dns) {
+    this.dns = opts.dns
+  } else {
+    this.dns = opts.dns === false ? null : dns(opts.dns)
+  }
+
   if (this.dns) {
     this.dns.on('peer', ondnspeer)
     this.dns.on('error', onwarn) // warn for dns errors as they are non critical
